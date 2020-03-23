@@ -54,7 +54,9 @@ function drawCircle(context,entity) {
         //moveTo(x,y);
         fillStyle = entity["colour"];
         strokeStyle = fillStyle;
-        arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
+        rect(x,y, Math.floor(entity["radius"]), Math.floor(entity["radius"]))
+        // arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
+        fill();
         stroke();                                
     }
 }
@@ -121,10 +123,52 @@ function getPosition(e) {
 	}
 }
 
+function sendJSONXMLHTTPRequest(url, objects, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState==4) {
+            try {
+                if (xhr.status==200) {
+                    console.log("Got DATA")
+                    console.log(xhr.responseText)
+                }
+            } 
+            catch(e) {
+                alert('Error: ' + e.name);
+            }
+        }
+    };
+    // Remember to use application/json !
+
+    xhr.open("POST", url, true);
+
+    if (objects !== null) {
+        xhr.overrideMimeType( "application/json")
+
+        xhr.setRequestHeader("Content-type", "application/json");
+        xhr.send(JSON.stringify(objects));
+        
+    } else {
+        xhr.overrideMimeType( "text/plain;charset=UTF-8")
+
+        xhr.setRequestHeader("Content-type", "text/plain;charset=UTF-8");
+        xhr.send(null);
+
+    }
+
+    // console.log(url)
+    // xhr.open("POST", url, true);
+    // xhr.send(null);
+    // console.log("Made requet")
+}
 function addEntity(entity, data) {
     world[entity] = data;
     drawNextFrame(); // (but should we?)
     //XXX: Send a XHTML Request that updates the entity you just modified!
+    to_send = {[entity]:data}
+    format = JSON.stringify(to_send)
+    socket.send(format)
+    sendJSONXMLHTTPRequest("/entity/"+ [entity], to_send, drawFrame());
 }
 var counter = 0;
 function addEntityWithoutName(data) {
@@ -254,6 +298,7 @@ function wsSetup() {
     socket = new WebSocket(url);
     socket.onopen = function() {
         //XXX: TODO What are you going to do here?
+        console.log("IN here")
     };
     socket.onerror = function(msg) {
         debug("WebSocket Error:" + msg.data);
@@ -261,7 +306,9 @@ function wsSetup() {
     socket.onmessage = function(msg) {  
         try {
             debug("WebSocket Recv:" + msg.data);
-            //XXX: TODO What are you going to do here?            
+            //THis means that I received update message form the server
+            print("Got update message")
+            console.log("Update message")
         } catch (e) {
             alert("socket on message: " + e);
         }
