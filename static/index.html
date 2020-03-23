@@ -299,6 +299,16 @@ function wsSetup() {
     socket.onopen = function() {
         //XXX: TODO What are you going to do here?
         console.log("IN here")
+        //Code from https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+        fetch('/world')
+        .then((response) => {
+            return response.json();
+        })
+        .then((data) => {
+            //Need to do work in here
+            console.log(data);
+            console.log("here")
+        });
     };
     socket.onerror = function(msg) {
         debug("WebSocket Error:" + msg.data);
