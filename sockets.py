@@ -26,6 +26,8 @@ app = Flask(__name__)
 sockets = Sockets(app)
 app.debug = True
 
+clients = []
+
 class World:
     def __init__(self):
         self.clear()
@@ -65,23 +67,79 @@ def set_listener( entity, data ):
     ''' do something with the update ! '''
 
 myWorld.add_set_listener( set_listener )
-        
+
+
+# Following code from: https://github.com/abramhindle/WebSocketsExamples/blob/master/chat.py
+clients = list()
+
+def send_all(msg):
+    for client in clients:
+        client.put( msg )
+
+def send_all_json(obj):
+    send_all( json.dumps(obj) )
+
+class Client:
+    def __init__(self):
+        self.queue = queue.Queue()
+
+    def put(self, v):
+        self.queue.put_nowait(v)
+
+    def get(self):
+        return self.queue.get()
+#End code 
+
+
+
+
 @app.route('/')
 def hello():
     '''Return something coherent here.. perhaps redirect to /static/index.html '''
-    return None
+    #This is mine
+    redirect_url = '''/static/index.html'''
+    return flask.redirect(redirect_url, code=301)
 
 def read_ws(ws,client):
     '''A greenlet function that reads from the websocket and updates the world'''
     # XXX: TODO IMPLEMENT ME
-    return None
+    # Following code from: https://github.com/abramhindle/WebSocketsExamples/blob/master/chat.py
+    try:
+        while True:
+            msg = ws.receive()
+            # print("WS RECV: %s" % msg)
+            if (msg is not None):
+                packet = json.loads(msg)
+                send_all_json( packet )
+            else:
+                break
+    except:
+        '''Done'''
+    #End code shame
+    
+
 
 @sockets.route('/subscribe')
 def subscribe_socket(ws):
     '''Fufill the websocket URL of /subscribe, every update notify the
        websocket and read updates from the websocket '''
     # XXX: TODO IMPLEMENT ME
-    return None
+    # Code from: # Following code from: https://github.com/abramhindle/WebSocketsExamples/blob/master/chat.py
+    client = Client()
+    clients.append(client)
+    g = gevent.spawn( read_ws, ws, client )    
+    try:
+        while True:
+            # block here
+            msg = client.get()
+            ws.send(msg)
+    except Exception as e:# WebSocketError as e:
+        print("WS Error %s" % e)
+    finally:
+        clients.remove(client)
+        gevent.kill(g)
+    # end code shame
+
 
 
 # I give this to you, this is how you get the raw body/data portion of a post in flask
