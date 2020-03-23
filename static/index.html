@@ -294,31 +294,26 @@ function update() {
 
 
 function wsSetup() {
-    var url = "ws://"+host+"/subscribe";   
+    var url = "ws://"+host+"/subscribe";
+    // var url = "ws://127.0.0.1:5000/subscribe";   
+
     socket = new WebSocket(url);
+    console.log(url);
     socket.onopen = function() {
-        //XXX: TODO What are you going to do here?
-        console.log("IN here")
-        //Code from https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
-        fetch('/world')
-        .then((response) => {
-            return response.json();
-        })
-        .then((data) => {
-            //Need to do work in here
-            console.log(data);
-            console.log("here")
-        });
+        console.log("ON");
+        console.log("IN here");
     };
     socket.onerror = function(msg) {
+        console.log("Error");
         debug("WebSocket Error:" + msg.data);
     };
-    socket.onmessage = function(msg) {  
+    socket.onmessage = function(msg) { 
+        console.log("Help") 
         try {
             debug("WebSocket Recv:" + msg.data);
             //THis means that I received update message form the server
-            print("Got update message")
-            console.log("Update message")
+            print("Got update message");
+            console.log("Update message");
         } catch (e) {
             alert("socket on message: " + e);
         }

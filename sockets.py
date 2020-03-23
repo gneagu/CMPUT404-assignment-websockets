@@ -115,6 +115,7 @@ def read_ws(ws,client):
                 break
     except:
         '''Done'''
+        print("oops")
     #End code shame
     
 
@@ -176,10 +177,10 @@ def world():
 def get_entity(entity):
     '''This is the GET version of the entity interface, return a representation of the entity'''
     try:
-        new_world = myWorld.get(entity)    
-        return new_world
+        # new_world = myWorld.get(entity)    
+        return json.dumps(myWorld.get(entity)), 200
     except:
-
+        print("ERROR")
         return None
 
 
